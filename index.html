@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disaster Preparedness Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+            border-radius: 12px;
+            margin: 1rem 0;
+        }
+
+        .emergency-marker {
+            background: red;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .location-info {
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 1rem;
+            background-color: #f3f4f6;
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <!-- Alert Banner -->
+    <div id="alertBanner" class="alert-banner">
+        Weather Alert: Severe thunderstorm warning in effect
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <div class="nav-tabs">
+                <div class="nav-tab active" onclick="showSection('dashboard')">Dashboard</div>
+                <div class="nav-tab" onclick="showSection('news')">News</div>
+                <div class="nav-tab" onclick="showSection('profile')">Profile</div>
+                <div class="nav-tab" onclick="showSection('resources')">Resources</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Dashboard Section -->
+        <section id="dashboard">
+            <div class="profile-header">
+                <img src="/images/download4.png" alt="User">
+                <div>
+                    <h2>Welcome Back, User</h2>
+                    <p>Current Status: Safe Zone</p>
+                </div>
+                <button id="sosButton" class="emergency-button">Emergency SOS</button>
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature-item" onclick="showFeature('alerts')">
+                    <img src="/images/download.png" alt="Alert">
+                    <span>Alerts</span>
+                </div>
+                <div class="feature-item" onclick="showFeature('weather')">
+                    <img src="/images/download1.jpeg" alt="Weather">
+                    <span>Weather</span>
+                </div>
+                <div class="feature-item" onclick="showFeature('safety')">
+                    <img src="/images/download2.png" alt="Safety">
+                    <span>Safety Tips</span>
+                </div>
+                <div class="feature-item" onclick="showFeature('resources')">
+                    <img src="/images/download3.jpeg" alt="Resources">
+                    <span>Resources</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- News Section -->
+        <section id="news" class="hidden">
+            <h2>Latest Updates</h2>
+            <div class="news-card">
+                <img src="/images/download5.png" alt="News">
+                <div class="content">
+                    <h3>Emergency Update</h3>
+                    <span>2 hours ago</span>
+                    <p>Latest updates on emergency situation and response efforts...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Profile Section -->
+        <section id="profile" class="hidden">
+            <div class="profile-section">
+                <div class="profile-header">
+                    <img src="/images/download4.png" alt="Profile">
+                    <div>
+                        <h2>User Profile</h2>
+                        <p>Emergency Contact: +1 234 567 8900</p>
+                    </div>
+                </div>
+                <div class="resources-grid">
+                    <div class="resource-card">
+                        <h3>Location</h3>
+                        <p>Safe Zone</p>
+                    </div>
+                    <div class="resource-card">
+                        <h3>Last Check-in</h3>
+                        <p>2 hours ago</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Resources Section -->
+        <section id="resources" class="hidden">
+            <h2>Emergency Resources</h2>
+            <div class="resources-grid">
+                <div class="resource-card">
+                    <h3>Emergency Contacts</h3>
+                    <ul>
+                        <li>Emergency: 911</li>
+                        <li>Hospital: City Hospital</li>
+                    </ul>
+                </div>
+                <div class="resource-card">
+                    <h3>Safety Guidelines</h3>
+                    <ul>
+                        <li>Stay calm and follow instructions</li>
+                        <li>Keep emergency kit ready</li>
+                        <li>Stay tuned to local news</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Map Section -->
+    <div id="map"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([0, 0], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        const emergencyIcon = L.divIcon({
+            className: 'emergency-marker',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+                    map.setView([userLat, userLng], 13);
+
+                    L.marker([userLat, userLng])
+                        .bindPopup('Your Location')
+                        .addTo(map);
+
+                    L.circle([userLat, userLng], {
+                        color: '#4285F4',
+                        fillColor: '#4285F4',
+                        fillOpacity: 0.1,
+                        radius: 1000
+                    }).addTo(map);
+                },
+                (error) => {
+                    console.error('Error getting location:', error);
+                    alert('Unable to get your location. Using default map view.');
+                }
+            );
+        }
+    </script>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024 Disaster Preparedness Platform. All Rights Reserved.</p>
+    </footer>
+</body>
+</html>
